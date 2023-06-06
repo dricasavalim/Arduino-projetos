@@ -1,0 +1,98 @@
+C#
+// Módulo seguidor de linha;
+// Código carrinho seguidor de linha.
+ 
+int UT1 = 12;
+int UT2 = 11;
+int UT3 = 10;
+int UT4 = 9;
+ 
+int B1B = 7;
+int B1A = 6;
+int A1B = 5;
+int A1A = 4;
+ 
+int Sensor1 = 0;
+int Sensor2 = 0;
+int Sensor3 = 0;
+int Sensor4 = 0;
+ 
+void setup() {
+ pinMode(UT1, INPUT);
+ pinMode(UT2, INPUT);
+ pinMode(UT3, INPUT);
+ pinMode(UT4, INPUT);
+ 
+ pinMode(B1B, OUTPUT);
+ pinMode(B1A, OUTPUT);
+ pinMode(A1B, OUTPUT);
+ pinMode(A1A, OUTPUT);
+ 
+}
+void loop() {
+ ler();
+ 
+ if(Sensor1==1) {
+ MotorDireita();
+ }
+ 
+ if(Sensor2==1) {
+ MotorDireita();
+ }
+ 
+ if(Sensor3==1) {
+ MotorEsquerda();
+ }
+ 
+ if(Sensor4==1) {
+ MotorEsquerda();
+ }
+ if((Sensor1==0) && (Sensor2==0) && (Sensor3==0) && (Sensor4==0)) {
+ MotorFrente();
+ }
+ if((Sensor1==1) && (Sensor2==1) && (Sensor3==1) && (Sensor4==1)) {
+ MotorParar();
+ delay(1000);
+ }
+ delay(2);
+}
+ 
+void ler() {
+ Sensor1 = digitalRead(UT1);
+ Sensor2 = digitalRead(UT2);
+ Sensor3 = digitalRead(UT3);
+ Sensor4 = digitalRead(UT4);
+ return;
+}
+ 
+void MotorDireita() {
+ digitalWrite(B1B, HIGH);
+ digitalWrite(A1A, LOW); 
+ digitalWrite(A1B, LOW);
+ digitalWrite(B1A, LOW);
+ delay(5);
+}
+ 
+void MotorEsquerda() {
+ digitalWrite(A1B, HIGH);
+ digitalWrite(B1A, LOW);
+ digitalWrite(B1B, LOW);
+ digitalWrite(A1A, LOW); 
+ delay(5);
+}
+ 
+void MotorFrente() {
+ digitalWrite(B1A, LOW);
+ digitalWrite(A1A, LOW); 
+ 
+ analogWrite(A1B, 180);
+ analogWrite(B1B, 180);
+ }
+ 
+void MotorParar() {
+ digitalWrite(A1B, LOW);
+ digitalWrite(B1B, LOW);
+ digitalWrite(B1A, LOW);
+ digitalWrite(A1A, LOW); 
+ delay(5);
+}
