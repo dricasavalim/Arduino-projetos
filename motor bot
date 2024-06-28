@@ -1,0 +1,32 @@
+#include <Servo.h>
+
+Servo myservo; //
+
+int pressionado; //estado do botao
+int botao=3; //Pino a ser ligado o botao
+int estado=0; //estado atual do botao
+
+void setup()
+{
+ myservo.attach(9); //pino de dados do servo conectado ao pino 9
+ myservo.write(0); //inicia motor posição 0 graus
+ pinMode(botao, INPUT_PULLUP);  
+}
+
+void loop() 
+{
+ pressionado=digitalRead(botao);  //verifica se o botao foi pressionado
+ delay(200);
+ //se ele não foi pressionado o valor do pressionado será 1
+  if((estado==0)&&(pressionado==0))
+  //Se o esatdo é 1 e o botão não esta pressionado, ou seja é 1 tambem
+  {   
+      myservo.write(180);//o Servo fica na posição 180 graus
+      estado==1;
+  }
+  if((estado==1)&&(pressionado==0))
+  {   
+      myservo.write(0);//o Servo fica na posição 0 graus
+      estado==0;
+  }
+}
