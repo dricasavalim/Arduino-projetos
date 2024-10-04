@@ -1,0 +1,139 @@
+// variáveis para controlar o ciclo de troca automática
+ long ciclo = 10 * 1000l; // 10 segundos
+ long ultimo_ciclo = 0;
+
+ // variáveis para controlar o botão
+ int debounce_delay = 800;
+ int pedido_peao = 0;
+ int pedido_estado = 0;
+
+ // portas de ligação ao arduino
+ const byte PEAO_GREEN = 2;
+ const byte PEAO_RED = 3;
+ const byte BUTTON = 5;
+ const byte BELL = 6;
+ const byte CAR_GREEN = 8;
+ const byte CAR_YELLOW = 9;
+ const byte CAR_RED = 10;
+
+ // som de aviso para peões/pedestres
+ const byte NOTE_A6 = 1760;  // experimentem mudar para sons diferentes
+
+ /**
+  * Rotinas de configuração inicial
+  */
+ void setup(){
+   // semaforo peoes
+   pinMode(PEAO_GREEN, OUTPUT);
+   digitalWrite(PEAO_GREEN, LOW);
+   pinMode(PEAO_RED, OUTPUT);
+   digitalWrite(PEAO_RED, HIGH);
+
+   // semaforo transito
+   pinMode(CAR_GREEN, OUTPUT);
+   digitalWrite(CAR_GREEN, HIGH);
+   pinMode(CAR_YELLOW, OUTPUT);
+   digitalWrite(CAR_YELLOW, LOW);
+   pinMode(CAR_RED, OUTPUT);
+   digitalWrite(CAR_RED, LOW);
+
+   // botao peoes
+   pinMode(BUTTON, INPUT);
+
+   // definir o ultimo ciclo
+   ultimo_ciclo = millis();
+
+   Serial.begin(9600);
+ }
+
+ /**
+  * Programa para gerir o semáforo
+  */
+ void loop(){
+   // detetar botao pressionado, com proteção debounce
+   // http://arduino.cc/it/Tutorial/Debounce
+   long ms = millis();
+   byte pedido = digitalRead(BUTTON);
+
+   if( ultimo_ciclo + ciclo < ms ){
+     // esta na hora de trocar para peoes (ciclo automático)
+     Serial.print("Prioridade aos peoes (automatico)\n");
+     pararCarros();
+     peoes();
+     arrancarCarros();
+     pedido_estado = 1;
+     ultimo_ciclo = millis();
+   } else if( pedido == 1 && (ms - debounce_delay) > pedido_peao ){
+     // um peao/pedestre pediu para parar o trânsito
+     Serial.print("Prioridade aos peoes (manual)\n");
+     pararCarros();
+     peoes();
+     arrancarCarros();
+     pedido_estado = 1;
+     ultimo_ciclo = millis(); // repor o contador automatico para nao acionar logo de seguida
+   } else if( pedido != pedido_estado ){
+     // protecao de debounce
+     pedido_peao = ms;
+   }
+
+   pedido_estado = pedido;
+ }
+
+ /**
+  * Função para ativar a transição do semáforo dos veículos para vermelho,
+  * de forma sequencial (verde, amarelo, vermelho) com 1 segundo de intervalo
+  */
+ void pararCarros(){
+   delay(1000);
+   digitalWrite(CAR_GREEN, LOW);
+   digitalWrite(CAR_YELLOW, HIGH);
+
+   delay(1000);
+   digitalWrite(CAR_YELLOW, LOW);
+   digitalWrite(CAR_RED, HIGH);
+
+   delay(1500);
+ }
+
+ /**
+  * Função para dar luz verde a veículos
+  * (de imediato, sem intervalo)
+  */
+ void arrancarCarros(){
+   digitalWrite(CAR_RED, LOW);
+   digitalWrite(CAR_YELLOW, LOW);
+   digitalWrite(CAR_GREEN, HIGH);
+ }
+
+ /**
+  * Função para ativar o sinal verde para peões/pedestres.
+  * O semáfoto ativa o sinal verde por 5 segundos, e depois
+  * dá 5 beeps indicativos que o sinal vai fechar
+  */
+ void peoes(){
+   digitalWrite(PEAO_RED, LOW);
+   digitalWrite(PEAO_GREEN, HIGH);
+
+   delay(5000);
+   piscaLuz(PEAO_GREEN, 5, 400);
+   digitalWrite(PEAO_GREEN, LOW);
+   digitalWrite(PEAO_RED, HIGH);
+   delay(2000);
+ }
+
+ /**
+  * Faz piscar uma determinada luz, um certo número de vezes
+  * @param luz Porta onde está ligada a luz que se pretende fazer piscar
+  * @param vezes Número de vezes para fazer piscar a luz
+  * @param tempo Tempo durante o qual a luz fica acesa
+  */
+ void piscaLuz(byte luz, byte vezes, int tempo){
+   for( byte i = 0; i < vezes; i++ ){
+     digitalWrite(luz, LOW);
+     tone(BELL, NOTE_A6, 1000/2);
+     delay(tempo);
+     digitalWrite(luz, HIGH);
+     delay(tempo);
+     noTone(BELL);
+   }
+ }
